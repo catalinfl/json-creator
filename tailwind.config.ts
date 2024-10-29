@@ -9,6 +9,17 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+		textFillColor: (theme: any) => theme('borderColor'),
+		textStrokeColor: (theme: any) => theme('borderColor'),
+		textStrokeWidth: (theme: any) => theme('borderWidth'),
+		paintOrder: {
+		  'fsm': { paintOrder: 'fill stroke markers' },
+		  'fms': { paintOrder: 'fill markers stroke' },
+		  'sfm': { paintOrder: 'stroke fill markers' },
+		  'smf': { paintOrder: 'stroke markers fill' },
+		  'mfs': { paintOrder: 'markers fill stroke' },
+		  'msf': { paintOrder: 'markers stroke fill' },
+		},
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -58,6 +69,8 @@ const config: Config = {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"),
+	require("tailwindcss-text-fill-stroke"),
+  ],
 };
 export default config;
