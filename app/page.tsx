@@ -4,13 +4,16 @@ import "./styles/globals.css";
 import Navbar from "@/components/ui-components/navbar";
 import Card from "@/components/ui-components/card";
 import ShowCards from "@/components/ui-components/show-cards";
+import { ScrollProvider } from "@/context/scrolljson";
 
 export default function Home() {
   return (
     <>
-      <Navbar />
-      <Hero />
-      <ShowCards />
+      <ScrollProvider>
+        <Navbar />
+        <Hero />
+        <ShowCards />
+      </ScrollProvider>
     </>
   );
 }

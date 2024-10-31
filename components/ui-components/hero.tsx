@@ -1,7 +1,14 @@
-import React from 'react';
+"use client"
+import React, { useContext } from 'react';
 import { MotionDiv } from './motion';
+import { ScrollContext } from '@/context/scrolljson';
+import { ScrollJsonContextProps } from '@/context/scrolljson';
 
 function Hero() {
+  
+  const scrollCtx = useContext(ScrollContext);
+  const { goToCards, setGoToCards } = scrollCtx as ScrollJsonContextProps;
+
   return (
     <MotionDiv
     whileTap={{ scale: 0.98 }}
@@ -33,7 +40,7 @@ function Hero() {
           <span className="mr-4">
             Create 
           </span>
-          <span className="decoration-8 text-stroke-2 text-fill-white underline-offset-8 cursor-pointer decoration-dashed paint decoration-black underline">
+          <span onClick={() => setGoToCards(goToCards + 1)} className="decoration-8 text-stroke-2 text-fill-white underline-offset-8 cursor-pointer decoration-dashed paint decoration-black underline">
             JSON
           </span>
           <span className="bg-clip-text text-8xl text-transparent bg-gradient-to-r from-yellow-500 to-red-600">.</span>
