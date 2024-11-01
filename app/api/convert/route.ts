@@ -1,7 +1,6 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { NextResponse } from "next/server";
 
-async function GET(req: NextApiRequest, res: NextApiResponse) {
+async function GET() {
     return NextResponse.json({ message: "test" }, { status: 200 });
 }
 

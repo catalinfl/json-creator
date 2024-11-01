@@ -58,7 +58,7 @@ const ShowCards = () => {
   }, [goToCards])
 
   return (
-    <div ref={showCardsRef} className="grid grid-cols-1 md:grid-cols-2 gap-y-24 xl:gap-y-0 xl:grid-cols-3 space-x-4 mx-auto mt-16 p-4 gap-2 max-w-7xl w-full">
+    <div ref={showCardsRef} className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-24 xl:gap-y-0 xl:grid-cols-3 mx-auto mt-16 p-4 gap-2 max-w-7xl w-full">
         {cards.map((card, index) => (
             <Card {...card} index={index} key={index} />
         ))}

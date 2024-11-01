@@ -26,8 +26,6 @@ type ModelStructureProps = {
 }
 
 
-
-
 export type CardType = "golang" | "typescript" | "convert"
 
 export default function Card({ cardType, index, cardText, jsonText, languageText, image }: CardProps) {

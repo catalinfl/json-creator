@@ -5,6 +5,7 @@ import Navbar from "@/components/ui-components/navbar";
 import Card from "@/components/ui-components/card";
 import ShowCards from "@/components/ui-components/show-cards";
 import { ScrollProvider } from "@/context/scrolljson";
+import ConvertComponent from "@/components/ui-components/convert-component";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
         <Navbar />
         <Hero />
         <ShowCards />
+        <ConvertComponent />
       </ScrollProvider>
     </>
   );
