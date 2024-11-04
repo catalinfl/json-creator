@@ -1,5 +1,5 @@
 "use client"
-import React, { KeyboardEventHandler } from 'react'
+import React, { KeyboardEventHandler, useState } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form'
 import { FieldValues, useForm } from 'react-hook-form'
@@ -11,8 +11,10 @@ type ConvertGoForm = {
 
 const ConvertGo = () => {
 
-    const form = useForm();
+    
 
+    const form = useForm();
+    const [data, setData] = useState('')
     const postData = async (data: FieldValues) => {
         const response = await fetch('/api/convert/go', {
             method: 'POST',
@@ -26,7 +28,7 @@ const ConvertGo = () => {
         })
 
         const json = await response.json();
-        console.log(json)
+        setData(json)
 
         return
     }
@@ -69,6 +71,8 @@ const ConvertGo = () => {
             }
         }
     };
+
+    console.log(data.t as any)
     
 
   return (
@@ -94,6 +98,9 @@ const ConvertGo = () => {
     />
         <Button type="submit" className="mt-12"> Test </Button>
         </form>
+        <div className=''>
+            {}
+        </div>
     </Form>
   )
 }
