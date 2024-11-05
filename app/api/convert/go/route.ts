@@ -42,6 +42,9 @@ async function POST(req: NextRequest) {
 
         if (line.includes('}')) { // handle the end of the struct
             isContentOfStruct = false;
+            if (line === "") {
+                return
+            }
             if (contentLines.split('\n').length < 2) {
                 contentLines = contentLines + '\n';
                 structsMap.set(structName, [contentLines.split('\n')[0]])
@@ -71,12 +74,11 @@ async function POST(req: NextRequest) {
         value.forEach((row: string, index: number) => {
             const fieldName = row.split(' ')[0]
             const fieldType = row.split(' ')[1]
+            if (!verifyFieldType(fieldType)) {
+                jsonToBeMapped.push(`"${fieldName}": ${fieldType}`)
+                return
+            }
             if (index === value.length - 1) {
-                if (!verifyFieldType(fieldType)) {
-                    const str = createStruct(structsMap, fieldType) // this should be after parsing the structs
-                    jsonToBeMapped.push(`"${fieldName}": ${str}`)
-                    return
-                }
                 jsonToBeMapped.push(`"${fieldName}": "abcd"`)
             } else {
                 jsonToBeMapped.push(`"${fieldName}": "abcd",`)
@@ -87,8 +89,24 @@ async function POST(req: NextRequest) {
     })
 
     for (const [key, value] of sendJsonMap) {
-        console.log(key, value)
+        const updatedValue: string[] = [];
+        for (const row of value) {
+            const fieldName = row.split(' ')[0]
+            const fieldType = row.split(' ')[1]
+            if (verifyIfAnotherStruct(structsMap, fieldType)) {
+                const structJson = createStruct(structsMap, fieldType, fieldName)
+                if (structJson === "") {
+                    return NextResponse.json({ message: "Invalid field type" }, { status: 400 })
+                }
+                updatedValue.push(`${structJson}`)
+            } else {
+                updatedValue.push(row);
+            }
+        }
+        sendJsonMap.set(key, updatedValue);
     }
+
+    console.log(sendJsonMap)
 
     for (let eachStruct of Array.from(structsMap.values())) {
         for (let row of eachStruct) {
@@ -108,6 +126,9 @@ async function POST(req: NextRequest) {
         }
         stringifiedJsonToBeSend += "}\n"
     }
+
+    console.log(stringifiedJsonToBeSend)
+
 
     return NextResponse.json({ t: stringifiedJsonToBeSend })
 }
@@ -129,33 +150,39 @@ const verifyIfAnotherStruct = (structMap: Map<string, string[]>, fieldType: stri
 }
 
 
-const createStruct = (structMap: Map<string, string[]>, fieldType: string): string => {
+const createStruct = (structMap: Map<string, string[]>, fieldType: string, jsonPartName: string): string => {
     if (!structMap.has(fieldType)) {
-        return ""
+        return "";
     }
 
-    var stringifiedJsonToBeSend = "";
+    let stringifiedJsonToBeSend = "";
+    
+    console.log(jsonPartName)
+    
+    stringifiedJsonToBeSend += `\t${jsonPartName} {\n`;
 
-    for (let [key, value] of structMap) {
-        if (key === fieldType) {
-            stringifiedJsonToBeSend += "{\n"
-            value.forEach((row: string, index: number) => {
-                const fieldName = row.split(' ')[0]
-                const fieldType = row.split(' ')[1]
-                if (index === value.length - 1) {
-                    stringifiedJsonToBeSend += `\t "${fieldName}": "${fieldType}"` + "\n"
-                    return
-                }
-                stringifiedJsonToBeSend += `\t "${fieldName}": "${fieldType}", ` + "\n"
-            })
-
-            stringifiedJsonToBeSend += "\t }"
-        }
+    const value = structMap.get(fieldType);
+    if (value) {
+        value.forEach((row: string, index: number) => {
+            const fieldName = row.split(' ')[0];
+            const fieldType = row.split(' ')[1];
+            if (structMap.has(fieldType)) {
+                const nestedStructJson = createStruct(structMap, fieldType, fieldName);
+                stringifiedJsonToBeSend += `\t "${fieldName}": ${nestedStructJson}`;
+            } else {
+                stringifiedJsonToBeSend += `\t "${fieldName}": "abcd"`;
+            }
+            if (index !== value.length - 1) {
+                stringifiedJsonToBeSend += ",\n";
+            } else {
+                stringifiedJsonToBeSend += "\n";
+            }
+        });
     }
 
-    return stringifiedJsonToBeSend
-}
-
+    stringifiedJsonToBeSend += "\t}";
+    return stringifiedJsonToBeSend;
+};
 
 
 
