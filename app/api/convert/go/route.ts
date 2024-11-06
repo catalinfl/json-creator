@@ -94,7 +94,7 @@ async function POST(req: NextRequest) {
             const fieldName = row.split(' ')[0]
             const fieldType = row.split(' ')[1]
             if (verifyIfAnotherStruct(structsMap, fieldType)) {
-                const structJson = createStruct(structsMap, fieldType, fieldName)
+                const structJson = createStruct(structsMap, fieldType, fieldName, 0)
                 if (structJson === "") {
                     return NextResponse.json({ message: "Invalid field type" }, { status: 400 })
                 }
@@ -105,8 +105,6 @@ async function POST(req: NextRequest) {
         }
         sendJsonMap.set(key, updatedValue);
     }
-
-    console.log(sendJsonMap)
 
     for (let eachStruct of Array.from(structsMap.values())) {
         for (let row of eachStruct) {
@@ -150,16 +148,28 @@ const verifyIfAnotherStruct = (structMap: Map<string, string[]>, fieldType: stri
 }
 
 
-const createStruct = (structMap: Map<string, string[]>, fieldType: string, jsonPartName: string): string => {
+
+const createStruct = (structMap: Map<string, string[]>, fieldType: string, jsonPartName: string, level: number, visited = new Set<string>()): string | NextResponse => {
     if (!structMap.has(fieldType)) {
-        return "";
+        return NextResponse.json({ message: "Invalid field type" }, { status: 404 });
     }
 
+    if (visited.has(fieldType)) {
+        return `"${jsonPartName}": { "circular_reference": "${fieldType}" }`;
+    }
+
+    visited.add(fieldType);
+
     let stringifiedJsonToBeSend = "";
-    
-    console.log(jsonPartName)
-    
-    stringifiedJsonToBeSend += `\t${jsonPartName} {\n`;
+
+    const indent = '\t'.repeat(level);
+    const nextIndent = '\t'.repeat(level + 1);
+
+    if (jsonPartName.includes(`"`)) {
+        stringifiedJsonToBeSend += `${indent}${jsonPartName} {\n`;
+    } else {
+        stringifiedJsonToBeSend += `${indent}"${jsonPartName}": {\n`;
+    }
 
     const value = structMap.get(fieldType);
     if (value) {
@@ -167,10 +177,14 @@ const createStruct = (structMap: Map<string, string[]>, fieldType: string, jsonP
             const fieldName = row.split(' ')[0];
             const fieldType = row.split(' ')[1];
             if (structMap.has(fieldType)) {
-                const nestedStructJson = createStruct(structMap, fieldType, fieldName);
-                stringifiedJsonToBeSend += `\t "${fieldName}": ${nestedStructJson}`;
+                const nestedStructJson = createStruct(structMap, fieldType, fieldName, level + 1, visited);
+                if (typeof nestedStructJson === 'string') {
+                    stringifiedJsonToBeSend += `${nestedStructJson}`;
+                } else {
+                    return nestedStructJson;
+                }
             } else {
-                stringifiedJsonToBeSend += `\t "${fieldName}": "abcd"`;
+                stringifiedJsonToBeSend += `${nextIndent}"${fieldName}": "abcd"`;
             }
             if (index !== value.length - 1) {
                 stringifiedJsonToBeSend += ",\n";
@@ -180,10 +194,12 @@ const createStruct = (structMap: Map<string, string[]>, fieldType: string, jsonP
         });
     }
 
-    stringifiedJsonToBeSend += "\t}";
+    stringifiedJsonToBeSend += `${nextIndent}}`;
+
+
+    visited.delete(fieldType);
     return stringifiedJsonToBeSend;
 };
-
 
 
 
